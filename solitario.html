@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solitario de Nuestro Amor</title>
+    <link rel="stylesheet" href="solitario.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Cabecera Romántica -->
+        <header class="game-header">
+            <h1>💖 Solitario de Nuestro Amor</h1>
+            <p>Cada carta cuenta nuestra historia</p>
+            <div class="game-stats">
+                <span id="movimientos">Movimientos: 0</span>
+                <span id="tiempo">Tiempo: 0s</span>
+                <button id="btn-reiniciar">🔄 Reiniciar</button>
+                <button id="btn-deshacer">↩️ Deshacer</button>
+            </div>
+        </header>
+
+        <!-- Área de Juego -->
+        <div class="solitario-game">
+            <!-- Zona Superior: Mazo y Pilas de Finalización -->
+            <div class="top-area">
+                <!-- Mazo -->
+                <div class="stock-pile" id="stock">
+                    <div class="card-back">💝</div>
+                    <span class="stock-count" id="stock-count">24</span>
+                </div>
+                
+                <!-- Descarte -->
+                <div class="waste-pile" id="waste"></div>
+                
+                <!-- Espacio -->
+                <div class="empty-space"></div>
+                
+                <!-- Pilas de Finalización -->
+                <div class="foundation-piles">
+                    <div class="foundation" id="foundation-0" data-palo="corazones"></div>
+                    <div class="foundation" id="foundation-1" data-palo="diamantes"></div>
+                    <div class="foundation" id="foundation-2" data-palo="treboles"></div>
+                    <div class="foundation" id="foundation-3" data-palo="picas"></div>
+                </div>
+            </div>
+
+            <!-- Zona Inferior: Tablero (7 columnas) -->
+            <div class="tableau" id="tableau">
+                <!-- Las 7 columnas se generarán con JavaScript -->
+            </div>
+        </div>
+
+        <!-- Mensajes Especiales -->
+        <div id="message-container" class="message-hidden">
+            <div class="romantic-message">
+                <h3 id="message-title">¡Memoria Especial!</h3>
+                <p id="message-content"></p>
+                <img id="message-photo" src="" alt="Nuestro recuerdo">
+                <button onclick="closeMessage()">💖 Continuar Jugando</button>
+            </div>
+        </div>
+
+        <!-- Pantalla de Victoria -->
+        <div id="victory-screen" class="message-hidden">
+            <div class="victory-message">
+                <h2>🎉 ¡Felicidades, Mi Amor! 🎉</h2>
+                <p>Has completado el solitario de nuestro amor</p>
+                <div class="victory-stats">
+                    <p>💝 Movimientos: <span id="victory-moves">0</span></p>
+                    <p>⏱️ Tiempo: <span id="victory-time">0s</span></p>
+                    <p>⭐ Puntuación: <span id="victory-score">1000</span></p>
+                </div>
+                <div class="love-message">
+                    <p>"Como este solitario, nuestra vida encaja perfectamente"</p>
+                    <p>"Cada carta representa un momento especial a tu lado"</p>
+                    <p>"Te amo más con cada día que pasa"</p>
+                </div>
+                <button id="restart-button">Reiniciar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="solitario.js"></script>
+</body>
+</html>
