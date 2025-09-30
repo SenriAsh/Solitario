@@ -396,6 +396,27 @@ class SolitarioKlondike {
         }
     }
 
+    robarCartas(cantidad = 1) {
+        if (this.mazo.length === 0) {
+            // Reiniciar mazo desde descarte
+            this.mazo = [...this.descarte].reverse();
+            this.mazo.forEach(carta => carta.caraArriba = false);
+            this.descarte = [];
+            this.actualizarUI();
+            return;
+        }
+    
+        for (let i = 0; i < cantidad && this.mazo.length > 0; i++) {
+            const carta = this.mazo.pop();
+            carta.caraArriba = true;
+            this.descarte.push(carta);
+            this.mostrarMensajeEspecial(carta);
+        }
+    
+        this.actualizarUI();
+    }
+    
+
     mostrarMensajeEspecial(carta) {
         const datos = carta.datosPersonalizados || {};
         const titleEl = document.getElementById('message-title');
@@ -440,9 +461,12 @@ class SolitarioKlondike {
 
     manejarClicCarta(evento) {
         if (evento.currentTarget.dataset.ubicacion === 'stock') {
-            this.robarCarta();
+            const selector = document.getElementById('cantidad-robar');
+            const cantidad = selector ? parseInt(selector.value) : 1;
+            this.robarCartas(cantidad);
         }
     }
+    
 
     /* ----------------- victoria ----------------- */
     verificarVictoria() {
@@ -523,13 +547,21 @@ class SolitarioKlondike {
             const foundation = document.getElementById(`foundation-${i}`);
             if (!foundation) continue;
             foundation.innerHTML = '';
-
+            foundation.style.position = 'relative';
+    
             if (this.pilasFinalizacion[i].length > 0) {
                 const ultimaCarta = this.pilasFinalizacion[i][this.pilasFinalizacion[i].length - 1];
-                foundation.appendChild(this.crearElementoCarta(ultimaCarta, 'foundation', i, this.pilasFinalizacion[i].length - 1));
+                const elementoCarta = this.crearElementoCarta(
+                    ultimaCarta,
+                    'foundation',
+                    i,
+                    this.pilasFinalizacion[i].length - 1
+                );
+                elementoCarta.style.position = 'absolute';
+                elementoCarta.style.top = '0px';
+                foundation.appendChild(elementoCarta);
             }
-
-            // evitar múltiples listeners redundantes
+    
             if (!foundation.dataset.finalDropListener) {
                 foundation.addEventListener('dragover', this.permitirSoltar.bind(this));
                 foundation.addEventListener('drop', (e) => this.soltarEnFinalizacion(e, i));
@@ -537,6 +569,7 @@ class SolitarioKlondike {
             }
         }
     }
+    
 
     soltarEnFinalizacion(evento, foundationIdx) {
         evento.preventDefault();
@@ -619,6 +652,23 @@ class SolitarioKlondike {
         return this.sonColoresAlternados(carta, cartaSuperior) && this.esValorDescendente(carta, cartaSuperior);
     }
 
+    deshacerMovimiento() {
+        if (this.historial.length === 0) return;
+    
+        // Recuperar último movimiento
+        const ultimoMovimiento = this.historial.pop();
+    
+        // Volver a colocar las cartas en su lugar original
+        const { origen, destino, cartas } = ultimoMovimiento;
+        destino.splice(-cartas.length, cartas.length); // quitar del destino
+        origen.push(...cartas); // devolver al origen
+    
+        // Voltear última carta del destino si es necesario
+        this.voltearUltimaCarta(origen);
+        this.actualizarUI();
+    }
+    
+
     sonColoresAlternados(carta1, carta2) {
         const palosRojos = ['corazones', 'diamantes'];
         const carta1EsRoja = palosRojos.includes(carta1.palo);
@@ -635,6 +685,14 @@ class SolitarioKlondike {
 
     realizarMovimiento(columnaOrigen, columnaDestinoIdx, indiceInicio) {
         const cartasAMover = columnaOrigen.splice(indiceInicio);
+
+        this.historial.push({
+            origen: columnaOrigen,
+            destino: this.tablero[columnaDestinoIdx],
+            cartas: [...cartasAMover]
+        });
+
+        columnaOrigen.splice(indiceInicio);
         this.tablero[columnaDestinoIdx].push(...cartasAMover);
     }
 
@@ -653,12 +711,16 @@ class SolitarioKlondike {
         const closeBtn = document.getElementById('message-close');
         if (closeBtn) closeBtn.addEventListener('click', closeMessage);
 
-        const restartBtn = document.getElementById('restart-button');
+        const restartBtn = document.getElementById('btn-reiniciar');
         if (restartBtn) restartBtn.addEventListener('click', reiniciarJuego);
 
         // asegurar que victory-screen está oculto al inicio
         const victory = document.getElementById('victory-screen');
         if (victory) victory.classList.add('message-hidden');
+
+        const undoBtn = document.getElementById('btn-deshacer');
+        if (undoBtn) undoBtn.addEventListener('click', () => this.deshacerMovimiento());
+
     }
 }
 
@@ -680,5 +742,4 @@ window.addEventListener('DOMContentLoaded', () => {
     // 👇 fuerza a ocultar el mensaje de victoria al cargar
     document.getElementById("victory-screen").classList.add("message-hidden");
 });
-
 
