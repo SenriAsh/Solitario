@@ -302,33 +302,45 @@ class SolitarioKlondike {
     }
 
     crearElementoCarta(carta, ubicacion, columnaIdx, cartaIdx) {
-        const elementoCarta = document.createElement('div');
-        elementoCarta.className = `card ${carta.caraArriba ? 'card-face-up' : 'card-face-down'}`;
-        elementoCarta.dataset.id = carta.id;
-        elementoCarta.dataset.ubicacion = ubicacion;
-        elementoCarta.dataset.columna = columnaIdx;
-        elementoCarta.dataset.indice = cartaIdx;
-        elementoCarta.style.top = `${cartaIdx * 25}px`;
+    const elementoCarta = document.createElement('div');
+    elementoCarta.className = `card ${carta.caraArriba ? 'card-face-up' : 'card-face-down'}`;
+    elementoCarta.dataset.id = carta.id;
+    elementoCarta.dataset.ubicacion = ubicacion;
+    elementoCarta.dataset.columna = columnaIdx;
+    elementoCarta.dataset.indice = cartaIdx;
+    elementoCarta.style.top = `${cartaIdx * 25}px`;
 
-        if (carta.caraArriba) {
-            if (carta.datosPersonalizados && carta.datosPersonalizados.imagen) {
-                elementoCarta.style.backgroundImage = `url('${carta.datosPersonalizados.imagen}')`;
-            }
-            elementoCarta.style.backgroundSize = 'cover';
-            elementoCarta.style.backgroundPosition = 'center';
-
-            elementoCarta.draggable = true;
-            elementoCarta.addEventListener('dragstart', this.iniciarArrastre.bind(this));
-            elementoCarta.addEventListener('dblclick', this.intentarMoverAFinalizacion.bind(this));
-        } else {
-            elementoCarta.style.backgroundImage = 'url("images/reverso-carta.png")';
-            elementoCarta.style.backgroundSize = 'cover';
-            elementoCarta.style.backgroundPosition = 'center';
+    if (carta.caraArriba) {
+        if (carta.datosPersonalizados && carta.datosPersonalizados.imagen) {
+            elementoCarta.style.backgroundImage = `url('${carta.datosPersonalizados.imagen}')`;
         }
+        elementoCarta.style.backgroundSize = 'cover';
+        elementoCarta.style.backgroundPosition = 'center';
 
-        elementoCarta.addEventListener('click', this.manejarClicCarta.bind(this));
-        return elementoCarta;
+        elementoCarta.draggable = true;
+        elementoCarta.addEventListener('dragstart', this.iniciarArrastre.bind(this));
+        elementoCarta.addEventListener('dblclick', this.intentarMoverAFinalizacion.bind(this));
+
+        // 👇 NUEVO: efecto hover "levantar carta"
+        elementoCarta.addEventListener("mouseenter", (e) => {
+            e.currentTarget.style.transform = "translateY(-15px)";
+            e.currentTarget.style.zIndex = "1000";
+        });
+
+        elementoCarta.addEventListener("mouseleave", (e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.zIndex = "";
+        });
+    } else {
+        elementoCarta.style.backgroundImage = 'url("images/reverso-carta.png")';
+        elementoCarta.style.backgroundSize = 'cover';
+        elementoCarta.style.backgroundPosition = 'center';
     }
+
+    elementoCarta.addEventListener('click', this.manejarClicCarta.bind(this));
+    return elementoCarta;
+}
+
 
     /* ----------------- drag & drop / movimientos ----------------- */
     iniciarArrastre(evento) {
@@ -653,20 +665,23 @@ class SolitarioKlondike {
     }
 
     deshacerMovimiento() {
-        if (this.historial.length === 0) return;
-    
-        // Recuperar último movimiento
-        const ultimoMovimiento = this.historial.pop();
-    
-        // Volver a colocar las cartas en su lugar original
-        const { origen, destino, cartas } = ultimoMovimiento;
-        destino.splice(-cartas.length, cartas.length); // quitar del destino
-        origen.push(...cartas); // devolver al origen
-    
-        // Voltear última carta del destino si es necesario
-        this.voltearUltimaCarta(origen);
-        this.actualizarUI();
+    if (this.historial.length === 0) return;
+
+    const ultimoMovimiento = this.historial.pop();
+    const { origen, destino, cartas, cartaVolteada } = ultimoMovimiento;
+
+    // Quitar del destino y devolver al origen
+    destino.splice(-cartas.length, cartas.length);
+    origen.push(...cartas);
+
+    // ⚡ Revertir la carta que se volteó (si existía)
+    if (cartaVolteada) {
+        cartaVolteada.caraArriba = false;
     }
+
+    this.actualizarUI();
+}
+
     
 
     sonColoresAlternados(carta1, carta2) {
@@ -684,17 +699,28 @@ class SolitarioKlondike {
     }
 
     realizarMovimiento(columnaOrigen, columnaDestinoIdx, indiceInicio) {
-        const cartasAMover = columnaOrigen.splice(indiceInicio);
+    const cartasAMover = columnaOrigen.splice(indiceInicio);
 
-        this.historial.push({
-            origen: columnaOrigen,
-            destino: this.tablero[columnaDestinoIdx],
-            cartas: [...cartasAMover]
-        });
-
-        columnaOrigen.splice(indiceInicio);
-        this.tablero[columnaDestinoIdx].push(...cartasAMover);
+    // ⚡ Guardar si la carta debajo se volteó
+    let cartaVolteada = null;
+    if (columnaOrigen.length > 0) {
+        const ultima = columnaOrigen[columnaOrigen.length - 1];
+        if (!ultima.caraArriba) {
+            ultima.caraArriba = true;
+            cartaVolteada = ultima; // Guardamos referencia
+        }
     }
+
+    this.historial.push({
+        origen: columnaOrigen,
+        destino: this.tablero[columnaDestinoIdx],
+        cartas: [...cartasAMover],
+        cartaVolteada // 👈 guardamos la carta volteada (si la hubo)
+    });
+
+    this.tablero[columnaDestinoIdx].push(...cartasAMover);
+}
+
 
     voltearUltimaCarta(columna) {
         if (columna.length > 0) {
@@ -742,4 +768,5 @@ window.addEventListener('DOMContentLoaded', () => {
     // 👇 fuerza a ocultar el mensaje de victoria al cargar
     document.getElementById("victory-screen").classList.add("message-hidden");
 });
+
 
