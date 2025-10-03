@@ -144,7 +144,7 @@ button:hover {
     height: 140px;
     border-radius: 8px;
     position: absolute;
-    transition: all 0.3s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
     cursor: pointer;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     background-size: cover;
@@ -171,6 +171,11 @@ button:hover {
     justify-content: space-between;
     padding: 10px;
     font-weight: bold;
+}
+
+.card.card-face-up:hover {
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
 }
 
 .card-value {
